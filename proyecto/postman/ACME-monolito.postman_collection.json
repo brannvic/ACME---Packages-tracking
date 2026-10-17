@@ -1,0 +1,2054 @@
+{
+  "info": {
+    "_postman_id": "c25ee1ce-e5c1-4264-a99e-26b20d601671",
+    "name": "ACME - 01 Monolito - Recorrido completo",
+    "description": "Importa también ACME-local.postman_environment.json y selecciona el entorno ACME - Local. Ejecuta las carpetas en orden o usa Run collection con una iteración. Requiere app y db saludables y npm run seed:prod. Genera dos guías nuevas por ejecución y conserva tokens y guías en el entorno. Los HTTP 400/401/403/404/409 incluidos son resultados esperados, verificados por los scripts. No cambia la hora del servidor. El segundo y tercer día están en la colección manual.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Arriba y respondiendo",
+      "description": "Comprueba salud e inicia las cuatro sesiones. Los scripts guardan los tokens automáticamente.",
+      "item": [
+        {
+          "name": "Salud de la aplicación y PostgreSQL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/health",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Aplicación y base disponibles', function () { pm.expect(pm.response.json()).to.eql({ estado: 'UP', baseDatos: 'UP' }); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Iniciar sesión - administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Autentica al administrador y guarda tokenAdministrador e idAdministrador en el entorno seleccionado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoAdministrador}}\",\n  \"contrasena\": \"{{contrasenaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset('tokenAdministrador');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const datos = pm.response.json();",
+                  "  pm.environment.set('tokenAdministrador', datos.token);",
+                  "  pm.environment.set('idAdministrador', datos.usuario.id);",
+                  "}",
+                  "pm.test('Token y usuario disponibles', function () { pm.expect(pm.response.json().token).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Iniciar sesión - cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Autentica al cliente y guarda tokenCliente e idCliente en el entorno seleccionado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoCliente}}\",\n  \"contrasena\": \"{{contrasenaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset('tokenCliente');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const datos = pm.response.json();",
+                  "  pm.environment.set('tokenCliente', datos.token);",
+                  "  pm.environment.set('idCliente', datos.usuario.id);",
+                  "}",
+                  "pm.test('Token y usuario disponibles', function () { pm.expect(pm.response.json().token).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Iniciar sesión - almacenista",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Autentica al almacenista y guarda tokenAlmacenista e idAlmacenista en el entorno seleccionado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoAlmacenista}}\",\n  \"contrasena\": \"{{contrasenaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset('tokenAlmacenista');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const datos = pm.response.json();",
+                  "  pm.environment.set('tokenAlmacenista', datos.token);",
+                  "  pm.environment.set('idAlmacenista', datos.usuario.id);",
+                  "}",
+                  "pm.test('Token y usuario disponibles', function () { pm.expect(pm.response.json().token).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Iniciar sesión - repartidor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Autentica al repartidor y guarda tokenRepartidor e idRepartidor en el entorno seleccionado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoRepartidor}}\",\n  \"contrasena\": \"{{contrasenaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset('tokenRepartidor');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const datos = pm.response.json();",
+                  "  pm.environment.set('tokenRepartidor', datos.token);",
+                  "  pm.environment.set('idRepartidor', datos.usuario.id);",
+                  "}",
+                  "pm.test('Token y usuario disponibles', function () { pm.expect(pm.response.json().token).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2 - Crear envío y corregir dirección",
+      "description": "El administrador representa la confirmación del proveedor. Solo el cliente titular puede corregir antes de salir a ruta.",
+      "item": [
+        {
+          "name": "Crear un envío con guía nueva",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdministrador}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/paquetes",
+            "description": "Genera una guía nueva en guiaEntrega. Requiere haber ejecutado el login del administrador y del cliente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"clienteId\": \"{{idCliente}}\",\n  \"destinatario\": \"Cliente de Postman\",\n  \"direccion\": \"Calle Inicial 123, Ciudad de México\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('guiaEntrega', 'ACME-' + pm.variables.replaceIn('{{$guid}}').slice(0, 8).toUpperCase());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Estado: creado', function () { pm.expect(pm.response.json().estado).to.eql('creado'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar estado público - creado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: creado', function () { pm.expect(pm.response.json().estado).to.eql('creado'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar detalle como titular",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}/detalle",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('El detalle incluye dirección', function () { pm.expect(pm.response.json().direccion).to.eql('Calle Inicial 123, Ciudad de México'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Corregir dirección antes de salir a ruta",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/{{guiaEntrega}}/direccion",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{idCorreccion}}\",\n  \"direccion\": \"Calle Corregida 456, Ciudad de México\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('idCorreccion', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Duplicado: false', function () { pm.expect(pm.response.json().duplicado).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Reenviar corrección - mismo UUID (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/{{guiaEntrega}}/direccion",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{idCorreccion}}\",\n  \"direccion\": \"Calle Corregida 456, Ciudad de México\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Duplicado: true', function () { pm.expect(pm.response.json().duplicado).to.eql(true); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Ver dirección corregida y un solo movimiento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}/detalle",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "const datos = pm.response.json();",
+                  "pm.test('Dirección actualizada una sola vez', function () {",
+                  "  pm.expect(datos.direccion).to.eql('Calle Corregida 456, Ciudad de México');",
+                  "  pm.expect(datos.historial.filter(m => m.tipo === 'direccion_corregida')).to.have.lengthOf(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3 - Del almacén a la entrega",
+      "description": "Sigue el paquete por los nodos. Comprueba las restricciones antes de confirmar la entrega.",
+      "item": [
+        {
+          "name": "Registrar ingreso al almacén",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAlmacenista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"tipo\": \"ingreso_almacen\",\n  \"ubicacion\": \"Almacén Central\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Registrar ingreso al centro de distribución",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAlmacenista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"tipo\": \"ingreso_centro_distribucion\",\n  \"ubicacion\": \"Centro CDMX\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Registrar salida a ruta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"tipo\": \"salida_ruta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar estado público - en ruta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: en_ruta', function () { pm.expect(pm.response.json().estado).to.eql('en_ruta'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Intentar corregir después de salir (409)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/{{guiaEntrega}}/direccion",
+            "description": "Resultado esperado: HTTP 409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"direccion\": \"Cambio fuera de ventana 789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Intentar entregar sin receptor (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"tipo\": \"entregado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Confirmar entrega con receptor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{idEntrega}}\",\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"tipo\": \"entregado\",\n  \"receptor\": \"María de Prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('idEntrega', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Duplicado: false', function () { pm.expect(pm.response.json().duplicado).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar estado público - entregado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: entregado', function () { pm.expect(pm.response.json().estado).to.eql('entregado'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4 - Idempotencia y estado terminal",
+      "description": "Simula una respuesta perdida: se reenvía el UUID conservado sin guardar otra entrega.",
+      "item": [
+        {
+          "name": "Reenviar la misma entrega (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{idEntrega}}\",\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"tipo\": \"entregado\",\n  \"receptor\": \"María de Prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Duplicado: true', function () { pm.expect(pm.response.json().duplicado).to.eql(true); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Reutilizar UUID con otro receptor (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{idEntrega}}\",\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"tipo\": \"entregado\",\n  \"receptor\": \"Otro receptor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Comprobar que existe una sola entrega",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}/detalle",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: entregado', function () { pm.expect(pm.response.json().estado).to.eql('entregado'); });",
+                  "pm.test('Una entrega con el receptor original', function () {",
+                  "  const entregas = pm.response.json().historial.filter(m => m.tipo === 'entregado');",
+                  "  pm.expect(entregas).to.have.lengthOf(1);",
+                  "  pm.expect(entregas[0].receptor).to.eql('María de Prueba');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Intentar fallar una entrega terminal (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"tipo\": \"intento_fallido\",\n  \"motivo\": \"No debe cambiar un paquete entregado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Verificar que sigue entregado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: entregado', function () { pm.expect(pm.response.json().estado).to.eql('entregado'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5 - Entrega fallida y reintento automático",
+      "description": "Crea otro paquete. El fallo programa el siguiente día y no convierte la entrega en terminal.",
+      "item": [
+        {
+          "name": "Crear otro envío para reintentos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdministrador}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/paquetes",
+            "description": "Genera una guía nueva en guiaReintentos. Requiere haber ejecutado el login del administrador y del cliente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"clienteId\": \"{{idCliente}}\",\n  \"destinatario\": \"Cliente de Postman\",\n  \"direccion\": \"Calle Inicial 123, Ciudad de México\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('guiaReintentos', 'ACME-' + pm.variables.replaceIn('{{$guid}}').slice(0, 8).toUpperCase());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Estado: creado', function () { pm.expect(pm.response.json().estado).to.eql('creado'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Ingresar paquete al almacén",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAlmacenista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"ingreso_almacen\",\n  \"ubicacion\": \"Almacén Central\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Ingresar paquete al centro de distribución",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAlmacenista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"ingreso_centro_distribucion\",\n  \"ubicacion\": \"Centro CDMX\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Registrar primera salida a ruta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"salida_ruta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Intentar registrar fallo sin motivo (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"intento_fallido\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Registrar primer intento fallido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{idFallo}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"intento_fallido\",\n  \"motivo\": \"No había nadie en el domicilio\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('idFallo', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Duplicado: false', function () { pm.expect(pm.response.json().duplicado).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Reenviar el mismo fallo (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{idFallo}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"intento_fallido\",\n  \"motivo\": \"No había nadie en el domicilio\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Duplicado: true', function () { pm.expect(pm.response.json().duplicado).to.eql(true); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar un solo reintento programado para esta guía",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/reintentos",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "const pendientes = pm.response.json().filter(p => p.numeroGuia === pm.environment.get('guiaReintentos'));",
+                  "pm.test('Un reintento pendiente sin duplicados', function () {",
+                  "  pm.expect(pendientes).to.have.lengthOf(1);",
+                  "  pm.expect(pendientes[0].estado).to.eql('pendiente');",
+                  "  pm.expect(pendientes[0].franja).to.be.oneOf(['manana', 'tarde']);",
+                  "});",
+                  "if (pendientes.length === 1) {",
+                  "  pm.environment.set('fechaReintento', pendientes[0].fecha);",
+                  "  pm.environment.set('franjaReintento', pendientes[0].franja);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Intentar salir de nuevo el mismo día (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"salida_ruta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar estado - intento fallido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaReintentos}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: intento_fallido', function () { pm.expect(pm.response.json().estado).to.eql('intento_fallido'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6 - Privacidad y errores esperados",
+      "description": "Un error HTTP esperado es una prueba aprobada cuando coincide con la regla de negocio.",
+      "item": [
+        {
+          "name": "Vista pública sin dirección, nombres ni receptor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Solo campos públicos', function () {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(Object.keys(datos).sort()).to.eql(['estado', 'historial', 'numeroGuia']);",
+                  "  datos.historial.forEach(m => pm.expect(Object.keys(m).sort()).to.eql(['registradoEn', 'tipo']));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar detalle sin token (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}/detalle",
+            "description": "Resultado esperado: HTTP 401."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar detalle como administrador (403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdministrador}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}/detalle",
+            "description": "Resultado esperado: HTTP 403."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', function () { pm.response.to.have.status(403); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar una guía inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/NO-EXISTE-POSTMAN-00000000",
+            "description": "Resultado esperado: HTTP 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function () { pm.response.to.have.status(404); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Iniciar sesión con contraseña incorrecta (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Resultado esperado: HTTP 401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoCliente}}\",\n  \"contrasena\": \"Incorrecta-para-la-prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Cliente intentando crear envío (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/paquetes",
+            "description": "Resultado esperado: HTTP 403.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"clienteId\": \"{{idCliente}}\",\n  \"destinatario\": \"Prueba\",\n  \"direccion\": \"Calle 1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', function () { pm.response.to.have.status(403); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Registrar movimiento con UUID inválido (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"no-es-un-uuid\",\n  \"numeroGuia\": \"{{guiaEntrega}}\",\n  \"tipo\": \"salida_ruta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Intentar cerrar caso antes de llegar a sucursal (409)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdministrador}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/paquetes/{{guiaReintentos}}/caso",
+            "description": "Resultado esperado: HTTP 409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteRespondio\": false,\n  \"notasContacto\": \"No aplica antes de sucursal\",\n  \"decisionProveedor\": \"regresar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7 - Cerrar sesiones y comprobar revocación",
+      "description": "Se cierran las cuatro sesiones creadas por este recorrido. Para repetir, empieza otra vez por la carpeta 1.",
+      "item": [
+        {
+          "name": "Cerrar sesión - administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdministrador}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/auth/logout",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Cerrar sesión - cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/auth/logout",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Cerrar sesión - almacenista",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAlmacenista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/auth/logout",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Cerrar sesión - repartidor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/auth/logout",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Reutilizar token revocado (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/reintentos",
+            "description": "Resultado esperado: HTTP 401."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "La consulta pública sigue funcionando",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaEntrega}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: entregado', function () { pm.expect(pm.response.json().estado).to.eql('entregado'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}

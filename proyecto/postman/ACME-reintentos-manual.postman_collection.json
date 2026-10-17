@@ -1,0 +1,680 @@
+{
+  "info": {
+    "_postman_id": "0cc889fb-afe4-49b8-811a-d24c4a603064",
+    "name": "ACME - 02 Reintentos y sucursal - Manual",
+    "description": "No ejecutar toda esta colección de una vez. Usa el mismo entorno ACME - Local que el recorrido principal. Mantén su guiaReintentos (o pega una guía existente con primer intento fallido). Ejecuta la carpeta 1; el segundo día, la 2; el tercer día, la 3. Solo después de ver en_sucursal, la 4. Las franjas del servidor son mañana 09–13 y tarde 14–18, hora de Ciudad de México. Las fechas no pueden adelantarse desde Postman. Este flujo comparte tokens con la colección principal: úsalo después de terminar aquella.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Preparar seguimiento",
+      "description": "Verifica guiaReintentos en el entorno. No vuelvas a ejecutar el recorrido principal entre días si deseas conservar esta guía.",
+      "item": [
+        {
+          "name": "Iniciar sesión - administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Autentica al administrador y guarda tokenAdministrador e idAdministrador en el entorno seleccionado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoAdministrador}}\",\n  \"contrasena\": \"{{contrasenaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset('tokenAdministrador');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const datos = pm.response.json();",
+                  "  pm.environment.set('tokenAdministrador', datos.token);",
+                  "  pm.environment.set('idAdministrador', datos.usuario.id);",
+                  "}",
+                  "pm.test('Token y usuario disponibles', function () { pm.expect(pm.response.json().token).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Iniciar sesión - repartidor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Autentica al repartidor y guarda tokenRepartidor e idRepartidor en el entorno seleccionado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoRepartidor}}\",\n  \"contrasena\": \"{{contrasenaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset('tokenRepartidor');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const datos = pm.response.json();",
+                  "  pm.environment.set('tokenRepartidor', datos.token);",
+                  "  pm.environment.set('idRepartidor', datos.usuario.id);",
+                  "}",
+                  "pm.test('Token y usuario disponibles', function () { pm.expect(pm.response.json().token).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar estado de la guía que continuará",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaReintentos}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar fecha y franja del próximo intento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/reintentos",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2 - Segundo día - usar la franja programada",
+      "description": "Renueva las sesiones en la carpeta 1. Ejecuta a partir de la fecha programada y dentro de su franja. Si salida_ruta devuelve 409, detente y consulta /reintentos; no continúes con el fallo.",
+      "item": [
+        {
+          "name": "Registrar segunda salida a ruta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"salida_ruta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Registrar segundo intento fallido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"intento_fallido\",\n  \"motivo\": \"Segundo día sin respuesta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar programación del tercer día",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/reintentos",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3 - Tercer día - pasar a sucursal",
+      "description": "Renueva las sesiones en la carpeta 1. Respeta la nueva fecha y franja. Solo después de una salida aceptada registra el fallo.",
+      "item": [
+        {
+          "name": "Registrar tercera salida a ruta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"salida_ruta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Registrar tercer fallo y paso automático a sucursal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/movimientos/escanear",
+            "description": "Resultado esperado: HTTP 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"numeroGuia\": \"{{guiaReintentos}}\",\n  \"tipo\": \"intento_fallido\",\n  \"motivo\": \"Tercer día sin respuesta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Comprobar estado - en sucursal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaReintentos}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: en_sucursal', function () { pm.expect(pm.response.json().estado).to.eql('en_sucursal'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Comprobar que no quedan reintentos de esta guía",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/reintentos",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Sin reintento pendiente de la guía', function () { pm.expect(pm.response.json().filter(p => p.numeroGuia === pm.environment.get('guiaReintentos'))).to.have.lengthOf(0); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4 - Contacto y decisión del proveedor",
+      "description": "Ejecutar una sola vez cuando la guía ya esté en sucursal. Registrar la decisión cierra el caso y bloquea ediciones posteriores.",
+      "item": [
+        {
+          "name": "Registrar contacto sin respuesta",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdministrador}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/paquetes/{{guiaReintentos}}/caso",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteRespondio\": false,\n  \"notasContacto\": \"Se llamó al cliente, no hubo respuesta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contacto registrado, caso aún abierto', function () { pm.expect(pm.response.json().contactoEn).to.be.a('string'); pm.expect(pm.response.json().casoCerradoEn).to.eql(null); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Registrar decisión del proveedor y cerrar el caso",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdministrador}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/paquetes/{{guiaReintentos}}/caso",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteRespondio\": false,\n  \"notasContacto\": \"El proveedor confirmó que se debe regresar\",\n  \"decisionProveedor\": \"regresar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: en_sucursal', function () { pm.expect(pm.response.json().estado).to.eql('en_sucursal'); });",
+                  "pm.test('Caso cerrado sin simular entrega', function () { pm.expect(pm.response.json().casoCerradoEn).to.be.a('string'); pm.expect(pm.response.json().decisionProveedor).to.eql('regresar'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Consultar estado público final - en sucursal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/tracking/{{guiaReintentos}}",
+            "description": "Resultado esperado: HTTP 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado: en_sucursal', function () { pm.expect(pm.response.json().estado).to.eql('en_sucursal'); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Cerrar sesión del administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdministrador}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/auth/logout",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Cerrar sesión del repartidor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenRepartidor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/auth/logout",
+            "description": "Resultado esperado: HTTP 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}
