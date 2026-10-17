@@ -1,0 +1,15 @@
+# Instancia exclusiva para pruebas; no modifica la base del monolito.
+services:
+  db:
+    image: postgres:17-alpine
+    ports:
+      - "127.0.0.1:55432:5432"
+    environment:
+      POSTGRES_DB: acme_test
+      POSTGRES_USER: acme
+      POSTGRES_PASSWORD: acme_desarrollo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acme -d acme_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
